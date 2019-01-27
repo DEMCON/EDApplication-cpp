@@ -69,7 +69,7 @@ void TransportLayerV0::receivedData(QByteArray message)
 {
     m_dataBuffer.append(message);
 
-    while(!m_dataBuffer.isEmpty())
+    if(!m_dataBuffer.isEmpty())
     {
         int STXindex = m_dataBuffer.indexOf(DebugProtocolV0Enums::ProtocolChar::STX);
         int ETXindex = m_dataBuffer.indexOf(DebugProtocolV0Enums::ProtocolChar::ETX,STXindex);
