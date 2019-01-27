@@ -28,6 +28,7 @@ SOURCES         = TCP.cpp \
     ../../EmbeddedDebugger/Medium/Register/RegisterListModel.cpp \
     ../../EmbeddedDebugger/Medium/CPU/Cpu.cpp \
     ../../EmbeddedDebugger/Medium/CPU/CpuListModel.cpp \
+    ../../EmbeddedDebugger/Medium/Medium.cpp \
     ../../Profiles/kconcatenaterowsproxymodel.cpp \
     Settings.cpp \
     Settings.cpp
@@ -37,6 +38,4 @@ DESTDIR         = ../../plugins
 INCLUDEPATH += ../../EmbeddedDebugger/
 
 FORMS += \
-    Settings.ui \
     Settings.ui
-

@@ -16,34 +16,29 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TCP_H
-#define TCP_H
+#ifndef SERIAL_H
+#define SERIAL_H
 
-#include <QTcpSocket>
-#include <QHostAddress>
+#include <QSerialPort>
+#include <QSettings>
 #include "../../EmbeddedDebugger/Medium/Medium.h"
-#include <QStringList>
-#include "Settings.h"
+#include "Settingsdialog.h"
 
+class ApplicationLayerBase;
+class PresentationLayerBase;
+class TransportLayerBase;
 
-
-class TCP : public Medium
+class Serial : public Medium
 {
     Q_OBJECT
 public:
-    explicit TCP(QObject* parent = nullptr);
-    virtual ~TCP();
-
-    QString hostAddress() const {return m_hostAddress.toString();}
-    int hostPort() const {return m_hostPort;}
-
-    QStringList availableProtocolVersions() {return m_availableProtocols;}
+    Serial(QObject* parent = nullptr);
+    virtual ~Serial();
 
 public slots:
     void connect() override;
     void disconnect() override;
     void showSettings() override;
-    bool setHostAddress(const QString& ipAddress, int ipPort);
     void setProtocolVersion(int availableProtocolVersionIndex);
 
 private:
@@ -51,14 +46,11 @@ private:
     void destroyProtocolLayers();
 
 private:
-
-    QTcpSocket m_tcpSocket;
     QStringList m_availableProtocols;
-    QHostAddress m_hostAddress;
-    Settings m_tcpSettingsDialog;
+    QSerialPort m_serialPort;
+    SettingsDialog m_settingsDialog;
     QSettings m_settings;
-    int m_hostPort = 0;
     int m_selectedProtocolVersion = 0;
 };
 
-#endif // TCP_H
+#endif // SERIAL_H
