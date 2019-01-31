@@ -53,6 +53,7 @@
 #define SETTINGSDIALOG_H
 
 #include <QDialog>
+#include <QSettings>
 #include <QSerialPort>
 
 QT_BEGIN_NAMESPACE
@@ -87,23 +88,24 @@ public:
     explicit SettingsDialog(QWidget *parent = nullptr);
     ~SettingsDialog();
 
-    Settings settings() const;
+    Settings settings() const {return m_currentSettings;} /**< @brief Returns the current settings of the serialDialog */
 
 private slots:
     void showPortInfo(int idx);
     void apply();
     void checkCustomBaudRatePolicy(int idx);
     void checkCustomDevicePathPolicy(int idx);
-    void refreshPorts();
+    void fillPortsInfo();
+
 
 private:
     void fillPortsParameters();
-    void fillPortsInfo();
     void updateSettings();
 
 private:
     Ui::SettingsDialog *m_ui = nullptr;
     Settings m_currentSettings;
+    QSettings m_settings;
     QIntValidator *m_intValidator = nullptr;
 };
 

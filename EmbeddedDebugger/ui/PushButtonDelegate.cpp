@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include <QDebug>
 
-PushButtonDelegate::PushButtonDelegate(const QString &buttonText, QObject *parent) :
+PushButtonDelegate::PushButtonDelegate(const QString& buttonText, QObject *parent) :
     QStyledItemDelegate(parent),
     m_buttonText(buttonText)
 {
@@ -34,7 +34,9 @@ PushButtonDelegate::PushButtonDelegate(const QString &buttonText, QObject *paren
 
 QWidget *PushButtonDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QPushButton* editor = new QPushButton(m_buttonText, parent);
+    Q_UNUSED(option);
+    Q_UNUSED(index);
+    auto editor = new QPushButton(m_buttonText, parent);
     if (editor != nullptr)
     {
         connect(editor,  &QPushButton::clicked, [=]()
@@ -47,19 +49,21 @@ QWidget *PushButtonDelegate::createEditor(QWidget *parent, const QStyleOptionVie
 
 void PushButtonDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    QPushButton* button = qobject_cast<QPushButton*>(editor);
+    Q_UNUSED(index);
+    auto button = qobject_cast<QPushButton*>(editor);
     Q_ASSERT(button);
 }
 
 void PushButtonDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
-    QPushButton* button = qobject_cast<QPushButton*>(editor);
+    auto button = qobject_cast<QPushButton*>(editor);
     Q_ASSERT(button);
     model->setData(index,true);
 }
 
 void PushButtonDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    Q_UNUSED(index);
     QStyleOptionButton btn;
     btn.rect = option.rect;
     btn.text = m_buttonText;

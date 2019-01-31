@@ -39,7 +39,7 @@ private slots:
 
 private:
     Ui::Settings *ui;
-    bool portValid(QString portString);
+    bool portValid(const QString& portString);
     QSettings m_settings;
     const QString m_settingsIPAddress = "IPAddress";
     const QString m_settingsIPPort = "IPPort";

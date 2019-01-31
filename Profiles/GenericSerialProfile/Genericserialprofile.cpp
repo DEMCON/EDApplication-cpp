@@ -26,5 +26,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 GenericSerialProfile::GenericSerialProfile(QObject *parent) :
     BaseProfile(parent)
 {
-    addMedium(new Serial());
+    addMedium(new Serial()); //Adds Serial to mediumList. will be deleted by BaseProfile deconstructor.
 }

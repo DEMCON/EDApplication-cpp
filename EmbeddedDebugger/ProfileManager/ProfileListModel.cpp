@@ -65,11 +65,6 @@ QVariant ProfileListModel::data(const QModelIndex &index, int role) const
        return returnValue;
 }
 
-QHash<int, QByteArray> ProfileListModel::roleNames() const
-{
-
-}
-
 void ProfileListModel::insert(int index, QPluginLoader *connector)
 {
     if(index < 0) {

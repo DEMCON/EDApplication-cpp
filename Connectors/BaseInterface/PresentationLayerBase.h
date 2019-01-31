@@ -25,7 +25,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Cpu;
 #include "Medium/CPU/CpuListModel.h"
 #include "../BaseInterface/Common.h"
+#include "Medium/Register/RegisterListModel.h"
 
+/**
+ * @brief The PresentationLayerBase class is the base class for the presentation layer.
+ * Each protocol version must be inherited from this class.
+ */
 class PresentationLayerBase : public QObject
 {
     Q_OBJECT
@@ -40,7 +45,7 @@ signals:
 
     /**
      * @brief Signal that is emitted when a new Cpu is found.
-     * @param Cpu that is found.
+     * @param newCpu that is found.
      */
     void newCpuFound(Cpu* newCpu);
 

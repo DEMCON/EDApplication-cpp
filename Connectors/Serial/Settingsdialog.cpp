@@ -50,11 +50,12 @@
 ****************************************************************************/
 
 #include "Settingsdialog.h"
-#include "ui_settingsdialog.h"
+#include "ui_Settingsdialog.h"
 
 #include <QIntValidator>
 #include <QLineEdit>
 #include <QSerialPortInfo>
+#include <QDebug>
 
 static const char blankString[] = QT_TRANSLATE_NOOP("SettingsDialog", "N/A");
 
@@ -76,11 +77,71 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     connect(m_ui->serialPortInfoListBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &SettingsDialog::checkCustomDevicePathPolicy);
     connect(m_ui->refreshButton, &QPushButton::clicked,
-            this, &SettingsDialog::refreshPorts);
+            this, &SettingsDialog::fillPortsInfo);
 
 
     fillPortsParameters();
     fillPortsInfo();
+
+    //Restore only settings if the comport is available.
+    m_settings.beginGroup("Serial");
+
+    for(int i = 0; i < m_ui->serialPortInfoListBox->count(); i++)
+    {
+        if(m_ui->serialPortInfoListBox->itemText(i) == m_settings.value("Name").toString())
+        {
+            m_ui->serialPortInfoListBox->setCurrentIndex(i);
+
+            m_currentSettings.name = m_settings.value("Name").toString();
+            m_currentSettings.baudRate = m_settings.value("BaudRate").toInt();
+            m_currentSettings.dataBits = static_cast<QSerialPort::DataBits>(m_settings.value("DataBits").toInt());
+            m_currentSettings.parity = static_cast<QSerialPort::Parity>(m_settings.value("Parity").toInt());
+            m_currentSettings.stopBits = static_cast<QSerialPort::StopBits>(m_settings.value("StopBits").toInt());
+            m_currentSettings.flowControl = static_cast<QSerialPort::FlowControl>(m_settings.value("FlowControl").toInt());
+
+            for(int i = 0; i < m_ui->baudRateBox->count(); i++)
+            {
+                if(m_ui->baudRateBox->itemData(i) == m_settings.value("BaudRate").toInt())
+                {
+                    m_ui->baudRateBox->setCurrentIndex(i);
+                    break;
+                }
+            }
+            for(int i = 0; i < m_ui->dataBitsBox->count(); i++)
+            {
+                if(m_ui->baudRateBox->itemData(i) == m_settings.value("DataBits").toInt())
+                {
+                    m_ui->baudRateBox->setCurrentIndex(i);
+                    break;
+                }
+            }
+            for(int i = 0; i < m_ui->parityBox->count(); i++)
+            {
+                if(m_ui->parityBox->itemData(i) == m_settings.value("Parity").toInt())
+                {
+                    m_ui->parityBox->setCurrentIndex(i);
+                    break;
+                }
+            }
+            for(int i = 0; i < m_ui->stopBitsBox->count(); i++)
+            {
+                if(m_ui->stopBitsBox->itemData(i) == m_settings.value("StopBits").toInt())
+                {
+                    m_ui->stopBitsBox->setCurrentIndex(i);
+                    break;
+                }
+            }
+            for(int i = 0; i < m_ui->flowControlBox->count(); i++)
+            {
+                if(m_ui->flowControlBox->itemData(i) == m_settings.value("FlowControl").toInt())
+                {
+                    m_ui->flowControlBox->setCurrentIndex(i);
+                    break;
+                }
+            }
+        }
+    }
+    m_settings.endGroup();
 }
 
 SettingsDialog::~SettingsDialog()
@@ -88,15 +149,15 @@ SettingsDialog::~SettingsDialog()
     delete m_ui;
 }
 
-SettingsDialog::Settings SettingsDialog::settings() const
-{
-    return m_currentSettings;
-}
-
+/**
+ * @brief Set the labels of the serial port so the user can view info about the serial port
+ * @param idx index of the serialPortInfoListBox
+ */
 void SettingsDialog::showPortInfo(int idx)
 {
-    if (idx == -1)
+    if (idx == -1) {
         return;
+    }
 
     const QStringList list = m_ui->serialPortInfoListBox->itemData(idx).toStringList();
     m_ui->descriptionLabel->setText(tr("Description: %1").arg(list.count() > 1 ? list.at(1) : tr(blankString)));
@@ -107,12 +168,19 @@ void SettingsDialog::showPortInfo(int idx)
     m_ui->pidLabel->setText(tr("Product Identifier: %1").arg(list.count() > 6 ? list.at(6) : tr(blankString)));
 }
 
+/**
+ * @brief Apply the settings and hide the settings dialog.
+ */
 void SettingsDialog::apply()
 {
     updateSettings();
     hide();
 }
 
+/**
+ * @brief When the user selects a custom baudrate, this function will set the item editable and clear the text.
+ * @param idx index of the current index of the baudRateBox
+ */
 void SettingsDialog::checkCustomBaudRatePolicy(int idx)
 {
     const bool isCustomBaudRate = !m_ui->baudRateBox->itemData(idx).isValid();
@@ -124,19 +192,22 @@ void SettingsDialog::checkCustomBaudRatePolicy(int idx)
     }
 }
 
+/**
+ * @brief When the user selects custom device, this function will set the item editable and clear the text.
+ * @param idx index of the current index of the serialPortInfoListBox
+ */
 void SettingsDialog::checkCustomDevicePathPolicy(int idx)
 {
     const bool isCustomPath = !m_ui->serialPortInfoListBox->itemData(idx).isValid();
     m_ui->serialPortInfoListBox->setEditable(isCustomPath);
-    if (isCustomPath)
+    if (isCustomPath) {
         m_ui->serialPortInfoListBox->clearEditText();
+    }
 }
 
-void SettingsDialog::refreshPorts()
-{
-    fillPortsInfo();
-}
-
+/**
+ * @brief Fill the dialog with all the possible port parameters.
+ */
 void SettingsDialog::fillPortsParameters()
 {
     m_ui->baudRateBox->addItem(QStringLiteral("9600"), QSerialPort::Baud9600);
@@ -168,6 +239,9 @@ void SettingsDialog::fillPortsParameters()
     m_ui->flowControlBox->addItem(tr("XON/XOFF"), QSerialPort::SoftwareControl);
 }
 
+/**
+ * @brief Fill dialog with all the available serial ports.
+ */
 void SettingsDialog::fillPortsInfo()
 {
     m_ui->serialPortInfoListBox->clear();
@@ -185,8 +259,8 @@ void SettingsDialog::fillPortsInfo()
              << (!manufacturer.isEmpty() ? manufacturer : blankString)
              << (!serialNumber.isEmpty() ? serialNumber : blankString)
              << info.systemLocation()
-             << (info.vendorIdentifier() ? QString::number(info.vendorIdentifier(), 16) : blankString)
-             << (info.productIdentifier() ? QString::number(info.productIdentifier(), 16) : blankString);
+             << (info.vendorIdentifier() != 0u ? QString::number(info.vendorIdentifier(), 16) : blankString)
+             << (info.productIdentifier() != 0u ? QString::number(info.productIdentifier(), 16) : blankString);
 
         m_ui->serialPortInfoListBox->addItem(list.first(), list);
     }
@@ -194,6 +268,10 @@ void SettingsDialog::fillPortsInfo()
     m_ui->serialPortInfoListBox->addItem(tr("Custom"));
 }
 
+/**
+ * @brief store settings in the settings struct
+ * and add settings to the QSettings
+ */
 void SettingsDialog::updateSettings()
 {
     m_currentSettings.name = m_ui->serialPortInfoListBox->currentText();
@@ -221,4 +299,14 @@ void SettingsDialog::updateSettings()
     m_currentSettings.flowControl = static_cast<QSerialPort::FlowControl>(
                 m_ui->flowControlBox->itemData(m_ui->flowControlBox->currentIndex()).toInt());
     m_currentSettings.stringFlowControl = m_ui->flowControlBox->currentText();
+
+    //Save Settings
+    m_settings.beginGroup("Serial");
+    m_settings.setValue("Name",m_currentSettings.name);
+    m_settings.setValue("BaudRate",static_cast<int32_t>(m_currentSettings.baudRate));
+    m_settings.setValue("DataBits",static_cast<int8_t>(m_currentSettings.dataBits));
+    m_settings.setValue("Parity",static_cast<int8_t>(m_currentSettings.parity));
+    m_settings.setValue("StopBits",static_cast<int8_t>(m_currentSettings.stopBits));
+    m_settings.setValue("flowControl",static_cast<int8_t>(m_currentSettings.flowControl));
+    m_settings.endGroup();
 }

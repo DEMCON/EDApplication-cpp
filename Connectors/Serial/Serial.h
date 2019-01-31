@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SERIAL_H
 
 #include <QSerialPort>
-#include <QSettings>
 #include "../../EmbeddedDebugger/Medium/Medium.h"
 #include "Settingsdialog.h"
 
@@ -28,6 +27,9 @@ class ApplicationLayerBase;
 class PresentationLayerBase;
 class TransportLayerBase;
 
+/**
+ * @brief The Serial class will send all messages over a serial port.
+ */
 class Serial : public Medium
 {
     Q_OBJECT
@@ -39,18 +41,14 @@ public slots:
     void connect() override;
     void disconnect() override;
     void showSettings() override;
-    void setProtocolVersion(int availableProtocolVersionIndex);
 
 private:
     void connectLayers();
     void destroyProtocolLayers();
 
 private:
-    QStringList m_availableProtocols;
-    QSerialPort m_serialPort;
-    SettingsDialog m_settingsDialog;
-    QSettings m_settings;
-    int m_selectedProtocolVersion = 0;
+    QSerialPort m_serialPort; /**< QSerialPort instance */
+    SettingsDialog m_settingsDialog; /**< Dialog for serial port settings */
 };
 
 #endif // SERIAL_H

@@ -44,21 +44,18 @@ public slots:
     void disconnect() override;
     void showSettings() override;
     bool setHostAddress(const QString& ipAddress, int ipPort);
-    void setProtocolVersion(int availableProtocolVersionIndex);
 
 private:
     void connectLayers();
     void destroyProtocolLayers();
 
 private:
-
     QTcpSocket m_tcpSocket;
     QStringList m_availableProtocols;
     QHostAddress m_hostAddress;
     Settings m_tcpSettingsDialog;
     QSettings m_settings;
     int m_hostPort = 0;
-    int m_selectedProtocolVersion = 0;
 };
 
 #endif // TCP_H

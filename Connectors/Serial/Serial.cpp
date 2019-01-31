@@ -27,7 +27,6 @@ Serial::Serial(QObject *parent) :
     Medium(parent),
     m_serialPort(this)
 {
-    m_availableProtocols.append("DebugProtocol V0");
 }
 
 Serial::~Serial()
@@ -35,31 +34,21 @@ Serial::~Serial()
     disconnect();
 }
 
+/**
+ * @brief Connect to a serial port and find all cpu`s
+ * If the user as never used the serialport, the SettingsDialog will be openend.
+ */
 void Serial::connect()
 {
-    SettingsDialog::Settings p = m_settingsDialog.settings();
+    const SettingsDialog::Settings p = m_settingsDialog.settings();
 
     if (p.name.isEmpty())
     {
-        //Settings menu has not been opened. Load settings.
-        m_settings.beginGroup("Serial");
-        p.name = m_settings.value("Name").toString();
-        p.baudRate = m_settings.value("BaudRate").toInt();
-        p.dataBits = static_cast<QSerialPort::DataBits>(m_settings.value("DataBits").toInt());
-        p.parity = static_cast<QSerialPort::Parity>(m_settings.value("Parity").toInt());
-        p.stopBits = static_cast<QSerialPort::StopBits>(m_settings.value("StopBits").toInt());
-        p.flowControl = static_cast<QSerialPort::FlowControl>(m_settings.value("FlowControl").toInt());
-        m_settings.endGroup();
-
-        if (p.name.isEmpty())
-        {
-            //Settings are not stored. Open Settings dialog
-            showSettings();
-        }
+        //Settings are not stored. Open Settings dialog
+        showSettings();
     }
-
-
-
+    else
+    {
         m_serialPort.setPortName(p.name);
         m_serialPort.setBaudRate(p.baudRate);
         m_serialPort.setDataBits(p.dataBits);
@@ -67,53 +56,42 @@ void Serial::connect()
         m_serialPort.setStopBits(p.stopBits);
         m_serialPort.setFlowControl(p.flowControl);
         if (m_serialPort.open(QIODevice::ReadWrite))
-        {
-            switch(m_selectedProtocolVersion)
-            {
-                case 0:  createDebugProtocolV0Layers(); break;
-            }
+        {   
+            createDebugProtocolV0Layers();
             connectLayers();
-            static_cast<PresentationLayerV0*>(m_presentationLayer)->scanForCpu();
             setConnected(true);
-
-            //Save Settings
-            m_settings.beginGroup("Serial");
-            m_settings.setValue("Name",p.name);
-            m_settings.setValue("BaudRate",p.baudRate);
-            m_settings.setValue("DataBits",p.dataBits);
-            m_settings.setValue("Parity",p.parity);
-            m_settings.setValue("StopBits",p.stopBits);
-            m_settings.setValue("flowControl",p.flowControl);
-            m_settings.endGroup();
+            static_cast<PresentationLayerV0*>(m_presentationLayer)->scanForCpu();
         }
         else
         {
             emit errorOccured(m_serialPort.errorString());
         }
-
+    }
 }
 
+/**
+ * @brief Disconnect from the serial port and destory all layers.
+ */
 void Serial::disconnect()
 {
     setConnected(false);
+    destroyProtocolLayers();
     m_serialPort.close();
     m_serialPort.reset();
     Medium::clear();
 }
 
+/**
+ * @brief Show settings dialog.
+ */
 void Serial::showSettings()
 {
     m_settingsDialog.show();
 }
 
-void Serial::setProtocolVersion(int availableProtocolVersionIndex)
-{
-    if(availableProtocolVersionIndex < m_availableProtocols.size())
-    {
-        m_selectedProtocolVersion = availableProtocolVersionIndex;
-    }
-}
-
+/**
+ * @brief Connect signals and slots for the layers.
+ */
 void Serial::connectLayers()
 {
     QObject::connect(&m_serialPort,&QSerialPort::readyRead, this, [&]()
@@ -126,6 +104,9 @@ void Serial::connectLayers()
     });
 }
 
+/**
+ * @brief Destory signals and protocol layers.
+ */
 void Serial::destroyProtocolLayers()
 {
     QObject::disconnect(&m_serialPort, &QSerialPort::readyRead, this, nullptr); //Disconnect tcpSocket lambda

@@ -7,3 +7,4 @@ Profiles \
 EmbeddedDebugger \
 
 Profile.depends = Connectors
+EmbeddedDebugger.depends = Profiles

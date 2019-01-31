@@ -23,7 +23,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "../BaseInterface/PresentationLayerBase.h"
 class Register;
 
-
+/**
+ * @brief The PresentationLayerV0 class is the debug protocol handler.
+ * This class has all the debug protocol commands that are needed for the version 0 of the debug protocol.
+ */
 class PresentationLayerV0 : public PresentationLayerBase
 {
     Q_OBJECT
@@ -43,13 +46,13 @@ public slots:
     void scanForCpu();
     /**
      * @brief Create a debug protocol command to query a Register
-     * @param Register that needs to be queried
+     * @param registerToRead Register that needs to be queried
      */
     void queryRegister(const Register& registerToRead);
 
     /**
      * @brief Create a debug protocol command to write a Register
-     * @param Register that needs to be written
+     * @param registerToWrite Register that needs to be written
      */
     void writeRegister(const Register& registerToWrite);
 
@@ -61,19 +64,19 @@ public slots:
 
     /**
      * @brief Create a debug protocol command  to config a debug channel
-     * @param Register that needs to be configured to be a debug channel
+     * @param registerToConfigDebugChannel Register that needs to be configured to be a debug channel
      */
     void configDebugChannel(Register &registerToConfigDebugChannel);
 
     /**
      * @brief Create a debug protocol command to get the decimation of a Cpu
-     * @param uCId Cpu that you want the decimation from
+     * @param uCId Cpu id that you want the decimation from
      */
     void getDecimation(uint8_t uCId);
 
     /**
      * @brief Create a debug protocol command to set the decimation of a Cpu
-     * @param  uCId Cpu where you want to set decimation
+     * @param uCId Cpu where you want to set decimation
      * @param newDecimation decimation that you want to be set.
      */
     void setDecimation(uint8_t uCId, int newDecimation);
@@ -90,7 +93,9 @@ private:
     void sendGetVersion(uint8_t uCId);
     void sendGetInfo(uint8_t uCId);
     void disableAllConfigChannels(uint8_t uCId, uint8_t nbrOfConfigChannels);
-    uint8_t controlByte(const Register& Register);
+    void increaseInvalidMessageCounter(uint8_t uCId, Cpu* cpu = nullptr);
+    uint8_t calculateControlByte(const Register& Register);
+    Register::ReadWrite getReadWriteFromControlByte(uint8_t ctrlByte);
 };
 
 #endif // PRESENTATIONLAYERV0_H

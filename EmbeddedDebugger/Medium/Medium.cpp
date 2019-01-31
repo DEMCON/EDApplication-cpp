@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Medium.h"
+#include "Register/Register.h"
+#include "Cpu/Cpu.h"
 
 #include "../DebugProtocolV0/ApplicationLayerV0.h"
 #include "../DebugProtocolV0/PresentationLayerV0.h"
@@ -53,7 +55,7 @@ void Medium::createDebugProtocolV0Layers()
     m_transportLayer = new TransportLayerV0(this);
     m_presentationLayer = new PresentationLayerV0(m_cpuListModel,m_registerListModel,this);
     m_applicationLayer = new ApplicationLayerV0(static_cast<PresentationLayerV0&>(*m_presentationLayer),this);
-    QObject::connect(m_transportLayer,&TransportLayerBase::receivedDebugProtocolCommand,
+    QObject::connect(m_transportLayer,&TransportLayerBase::receivedDebugProtocolMessage,
                      m_presentationLayer,&PresentationLayerBase::receivedDebugProtocolCommand);
     QObject::connect(m_presentationLayer,&PresentationLayerBase::newDebugProtocolCommand,
                      m_transportLayer,&TransportLayerBase::sendDebugProtocolCommand);
@@ -91,5 +93,4 @@ void Medium::clear()
 {
     m_cpuListModel.clear();
     m_registerListModel.clear();
-    destroyProtocolLayers();
 }

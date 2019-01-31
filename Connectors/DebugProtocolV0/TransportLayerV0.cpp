@@ -21,6 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QVector>
 #include <QDebug>
 
+/**
+  @brief contains a lookup table that is used for creating a crc
+  */
 static const uint8_t crcTable[] = {
     0,  94, 188, 226,  97,  63, 221, 131, 194, 156, 126,  32, 163, 253,  31,  65,
     157, 195,  33, 127, 252, 162,  64,  30,  95,   1, 227, 189,  62,  96, 130, 220,
@@ -42,37 +45,37 @@ static const uint8_t crcTable[] = {
 
 TransportLayerV0::TransportLayerV0(QObject *parent) :
     TransportLayerBase(parent)
-{
-
-}
+{}
 
 TransportLayerV0::~TransportLayerV0()
-{
-    qDebug() << "Transport Layer destroyed";
-}
+= default;
+
 
 void TransportLayerV0::sendDebugProtocolCommand(uint8_t uCId, QVector<uint8_t> messageVector)
 {
-    //Protocol Commands is onlyt the command + commandData.
+    //Protocol Commands is only the command + commandData.
     messageVector.prepend(msgId()); //Add msgId
     messageVector.prepend(uCId); //Add uC id
-    messageVector.append(calculateCRC(messageVector));
-    addEscapeCharacters(messageVector);
-    messageVector.prepend(DebugProtocolV0Enums::ProtocolChar::STX);
-    messageVector.append(DebugProtocolV0Enums::ProtocolChar::ETX);
+    messageVector.append(calculateCRC(messageVector)); //add Crc
+    addEscapeCharacters(messageVector); //Add escape characters
+    messageVector.prepend(static_cast<uint8_t>(DebugProtocolV0Enums::ProtocolChar::STX)); //Add StartByte
+    messageVector.append(static_cast<uint8_t>(DebugProtocolV0Enums::ProtocolChar::ETX)); //Add EndByte
     qDebug() << "Send message: " << messageVector;
 
     emit write(toByteArray(messageVector));
 }
 
-void TransportLayerV0::receivedData(QByteArray message)
+void TransportLayerV0::receivedData(const QByteArray message)
 {
     m_dataBuffer.append(message);
 
-    if(!m_dataBuffer.isEmpty())
+    int STXindex = 0;
+    int ETXindex = 0;
+
+    while (!m_dataBuffer.isEmpty() && ETXindex != -1)
     {
-        int STXindex = m_dataBuffer.indexOf(DebugProtocolV0Enums::ProtocolChar::STX);
-        int ETXindex = m_dataBuffer.indexOf(DebugProtocolV0Enums::ProtocolChar::ETX,STXindex);
+        STXindex = m_dataBuffer.indexOf(static_cast<char>(DebugProtocolV0Enums::ProtocolChar::STX));
+        ETXindex = m_dataBuffer.indexOf(static_cast<char>(DebugProtocolV0Enums::ProtocolChar::ETX),STXindex);
         if (STXindex >= 0 && ETXindex >= 0 && STXindex < m_dataBuffer.size() && ETXindex < m_dataBuffer.size() && STXindex + 4 < ETXindex)
         {
             QVector<uint8_t> messageVector;
@@ -93,7 +96,9 @@ void TransportLayerV0::receivedData(QByteArray message)
                     qDebug() << "Message Received: " << messageVector;
                     uint8_t uCId = messageVector.takeFirst();
                     uint8_t msgID = messageVector.takeFirst();
-                    emit receivedDebugProtocolCommand(uCId,messageVector);
+                    Q_UNUSED(msgID);
+                    //TODO: Implement resend if we do not get a response from a message we send.
+                    emit receivedDebugProtocolMessage(uCId,messageVector);
                 }
                 else
                 {
@@ -115,17 +120,18 @@ uint8_t TransportLayerV0::msgId()
     return m_msgId;
 }
 
+
 void TransportLayerV0::addEscapeCharacters(QVector<uint8_t> &messageVector)
 {
     for(int i = messageVector.size() -1; i >= 0; i--)
     {
-        if (messageVector.at(i) == DebugProtocolV0Enums::ProtocolChar::ETX ||
-                messageVector.at(i) == DebugProtocolV0Enums::ProtocolChar::STX ||
-                messageVector.at(i) == DebugProtocolV0Enums::ProtocolChar::ESC)
+        if (messageVector.at(i) == static_cast<uint8_t>(DebugProtocolV0Enums::ProtocolChar::ETX) ||
+                messageVector.at(i) == static_cast<uint8_t>(DebugProtocolV0Enums::ProtocolChar::STX) ||
+                messageVector.at(i) == static_cast<uint8_t>(DebugProtocolV0Enums::ProtocolChar::ESC))
         {
             uint8_t value = messageVector.at(i);
-            messageVector.replace(i, DebugProtocolV0Enums::ProtocolChar::ESC ^ value);
-            messageVector.insert(i, DebugProtocolV0Enums::ProtocolChar::ESC);
+            messageVector.replace(i, static_cast<uint8_t>(DebugProtocolV0Enums::ProtocolChar::ESC) ^ value);
+            messageVector.insert(i, static_cast<uint8_t>(DebugProtocolV0Enums::ProtocolChar::ESC));
         }
     }
 }
@@ -134,10 +140,10 @@ void TransportLayerV0::replaceEscapeCharacters(QVector<uint8_t> &messageVector)
 {
     for (int i = 0 ; i < messageVector.size() ; i++)
     {
-        if (messageVector[i] == DebugProtocolV0Enums::ProtocolChar::ESC)
+        if (messageVector[i] == static_cast<uint8_t>(DebugProtocolV0Enums::ProtocolChar::ESC))
         {
             messageVector.remove(i);
-            uint8_t value = (DebugProtocolV0Enums::ProtocolChar::ESC ^ messageVector[i]);
+            uint8_t value = (static_cast<uint8_t>(DebugProtocolV0Enums::ProtocolChar::ESC) ^ messageVector[i]);
             messageVector.replace(i,value);
         }
     }
@@ -152,3 +158,5 @@ uint8_t TransportLayerV0::calculateCRC(const QVector<uint8_t>& messageVector)
     }
     return returnValue;
 }
+
+

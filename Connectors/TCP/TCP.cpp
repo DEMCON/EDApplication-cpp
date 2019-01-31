@@ -28,8 +28,6 @@ TCP::TCP(QObject* parent) :
     Medium(parent),
     m_tcpSocket(this)
 {
-    m_availableProtocols.append("DebugProtocol V0");
-
     QObject::connect(&m_tcpSocket,&QTcpSocket::connected, this, [&]()
     {
         if(m_presentationLayer != nullptr)
@@ -88,11 +86,7 @@ void TCP::connect()
     }
     else
     {
-        switch(m_selectedProtocolVersion)
-        {
-            case 0:  createDebugProtocolV0Layers(); break;
-        }
-
+        createDebugProtocolV0Layers();
         connectLayers();
         m_tcpSocket.connectToHost(hostname,port);
     }
@@ -102,6 +96,7 @@ void TCP::disconnect()
 {
     m_tcpSocket.disconnectFromHost();
     m_tcpSocket.reset();
+    destroyProtocolLayers();
     Medium::clear();
 }
 
@@ -114,12 +109,4 @@ bool TCP::setHostAddress(const QString &ipAddress, int ipPort)
 {
     m_hostPort = ipPort;
     return m_hostAddress.setAddress(ipAddress);
-}
-
-void TCP::setProtocolVersion(int availableProtocolVersionIndex)
-{
-    if(availableProtocolVersionIndex < m_availableProtocols.size())
-    {
-        m_selectedProtocolVersion = availableProtocolVersionIndex;
-    }
 }

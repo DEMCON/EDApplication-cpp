@@ -19,10 +19,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef REGISTERLISTMODEL_H
 #define REGISTERLISTMODEL_H
 
-class Register;
 #include <QAbstractTableModel>
 #include <QVector>
+#include "Register.h"
 
+
+/**
+ * @brief The RegisterListModel class holds all the registers`s that are found.
+ */
 class RegisterListModel : public QAbstractTableModel
 {
     Q_OBJECT
@@ -44,16 +48,13 @@ public:
     void insert(int index, Register* registerNode);
     void append(Register *registerNode);
     void clear();
-    bool contains(uint registerId);
-    Register* getRegisterById(uint registerID);
-    Register* getRegisterByOffset(uint32_t offset);
-    Register* getRegisterByCpuIdAndOffset(uint8_t uCId, int32_t offset);
+    Register* getRegisterByCpuIdOffsetReadWrite(uint8_t uCId, uint32_t offset, Register::ReadWrite readWrite);
 
 private slots:
     void registerDataChanged(Register& Register);
 
 private:
-    QVector<Register*> m_registers;
+    QVector<Register*> m_registers; /**< QVector containing all the registers */
 };
 
 #endif // REGISTERLISTMODEL_H

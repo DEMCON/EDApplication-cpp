@@ -33,14 +33,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
  * @brief Create QVector<uint8_t> from a QByteArray
  * @param data QBytearray containing the data.
+ * @param size of the QVector that should be returned.
  * @return QVector<uint8_t> containing the data.
  */
-static QVector<uint8_t> fromByteArray(QByteArray data)
+static QVector<uint8_t> fromByteArray(QByteArray data, uint8_t size)
 {
-    QVector<uint8_t> vector;
-    for(auto x : data)
+    QVector<uint8_t> vector(size);
+    for(int i = 0; i < vector.size(); i++)
     {
-        vector.append(x);
+        vector.replace(i,static_cast<uint8_t>(data[i]));
     }
     return vector;
 }
@@ -81,30 +82,29 @@ return_type toValue(QVector<uint8_t> data)
  * @param appendToVector vector that the 32 bits value needs to be added
  * @param valueToAppend uint32_t value that needs to be added to the QVector
  */
-static void append32BitValue(QVector<uint8_t>& appendToVector,const uint32_t valueToAppend){
-   appendToVector.append(valueToAppend);
-   appendToVector.append(valueToAppend >>  8);
-   appendToVector.append(valueToAppend >> 16);
-   appendToVector.append(valueToAppend >> 24);
+inline void append32BitValue(QVector<uint8_t>& appendToVector,const uint32_t valueToAppend){
+    appendToVector.append(static_cast<uint8_t>(valueToAppend));
+    appendToVector.append(static_cast<uint8_t>(valueToAppend >>  8));
+    appendToVector.append(static_cast<uint8_t>(valueToAppend >> 16));
+    appendToVector.append(static_cast<uint8_t>(valueToAppend >> 24));
 }
 
 /**
  * @brief Convert QVaraint to QVector<uint8_t>
  * @param data QVaraint that needs to be converted.
+ * @param size The size of the QVector that needs to be returned.
  * @return QVector<uint8_t> that contains the converted value.
  */
-static QVector<uint8_t> toQVector(const QVariant& data)
+inline QVector<uint8_t> toQVector(const QVariant& data, const uint8_t size)
 {
     switch(data.type())
     {
         case QVariant::Bool:
-    {
-        return fromByteArray(toByteArray(data.value<bool>()));
+            {
+                return fromByteArray(toByteArray(data.toBool()),size);
 
-    }
-    default:
-        break;
-
+            }
+        default: return QVector<uint8_t>();
     }
 
 }

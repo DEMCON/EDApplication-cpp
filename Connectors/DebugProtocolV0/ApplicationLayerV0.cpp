@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "ApplicationLayerV0.h"
+#include "Medium/CPU/Cpu.h"
 
 ApplicationLayerV0::ApplicationLayerV0(PresentationLayerV0& presentationLayerV0, QObject *parent) :
     ApplicationLayerBase(parent),

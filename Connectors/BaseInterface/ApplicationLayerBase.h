@@ -23,6 +23,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Register;
 class Cpu;
 
+/**
+ * @brief The ApplicationLayerBase class is the base class for the application layer.
+ * Each protocol version must be inherited from this class and implement all the functions.
+ * The application layer is the only layer that the rest of the application knows of.
+ */
 class ApplicationLayerBase : public QObject
 {
     Q_OBJECT
@@ -43,37 +48,37 @@ public slots:
 
     /**
      * @brief Query the current value of a Register
-     * @param Register you want to query
+     * @param registerToRead Register you want to query
      */
     virtual void queryRegister(const Register& registerToRead) = 0;
 
     /**
      * @brief Write the Register with a new value
-     * @param Register you want to write
+     * @param registerToWrite Registeryou want to write
      */
     virtual void writeRegister(const Register& registerToWrite) = 0;
 
     /**
      * @brief Reset the time of the CPU
-     * @param Cpu you want to reset the time.
+     * @param cpu you want to reset the time.
      */
     virtual void resetTime(const Cpu& cpu) = 0;
 
     /**
      * @brief Config debug channel for a Register.
-     * @param Register you want to config the debug channel for.
+     * @param registerToConfigDebugChannel Register you want to config the debug channel for.
      */
     virtual void configDebugChannel(Register& registerToConfigDebugChannel) = 0;
 
     /**
      * @brief Get the decimation of the cpu
-     * @param Cpu of which you want the decemation from.
+     * @param cpu of which you want the decemation from.
      */
     virtual void getDecimation(const Cpu& cpu) = 0;
 
     /**
      * @brief Set the decimation of a cpu
-     * @param Cpu of which you want to set the decimation.
+     * @param cpu of which you want to set the decimation.
      */
     virtual void setDecimation(const Cpu& cpu) = 0;
 };

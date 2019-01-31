@@ -21,9 +21,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QObject>
 #include <QVector>
-#include "Medium/Register/RegisterListModel.h"
 #include "Medium/Register/Register.h"
 
+/**
+ * @brief The Cpu class holds all the information about a cpu/node.
+ */
 class Cpu : public QObject
 {
     Q_OBJECT
@@ -34,52 +36,73 @@ public:
     virtual ~Cpu();
 
     //Getters
-    uint8_t id() const {return m_id;}    
-    QString name() const {return m_name;}
-    QString serialNumber() const {return m_serialNumber;}
-    QString protocolVersion() const {return m_protocolVersion;}
-    QString applicationVersion() const {return m_applicationVersion;}
-    int decimation() const {return m_decimation;}
-    int messageCounter() const {return m_messageCounter;}
-    int invalidMessageCounter() const {return m_invalidMessageCounter;}
+    uint8_t id() const {return m_id;} /**< @brief Returns the id of the Cpu.*/
+    QString name() const {return m_name;} /**< @brief Returns the name of the Cpu.*/
+    QString serialNumber() const {return m_serialNumber;} /**< @brief Returns the serial number of the Cpu.*/
+    QString protocolVersion() const {return m_protocolVersion;} /**< @brief Returns the protocol version of the Cpu.*/
+    QString applicationVersion() const {return m_applicationVersion;} /**< @brief Returns the application version of the Cpu.*/
+    int decimation() const {return m_decimation;} /**< @brief Returns the decimation of the Cpu.*/
+    int messageCounter() const {return m_messageCounter;} /**< @brief Returns the message counter of the Cpu.*/
+    int invalidMessageCounter() const {return m_invalidMessageCounter;} /**< @brief Returns the invalid message counter of the Cpu.*/
 
     void setVariableTypeSize(const Register::VariableType &variableType, int size);
     int getVariableTypeSize(const Register::VariableType& variableType);
-    void increaseMessageCounter();
+    void increaseMessageCounter() {m_messageCounter++;} /**< Increase the message counter. */
     void increaseInvalidMessageCounter();
-    void increaseNbrOfActiveDebugChannels() {m_activeDebugChannels++;}
-    void decreaseNbrOfActiveDebugChannels() {m_activeDebugChannels--;}
-    int maxDebugChannels() const {return m_maxDebugChannels;}
-    int  nextDebugChannel();
-    QVector<Register*>& debugChannels() {return m_debugChannels;}
+    void increaseNbrOfActiveDebugChannels() {m_activeDebugChannels++;} /**< Increase the number of active debug channels.*/
+    void decreaseNbrOfActiveDebugChannels() {m_activeDebugChannels--;} /**< Decrease the number of active debug channels.*/
+    int maxDebugChannels() const {return m_maxDebugChannels;} /**< @brief Returns the maximum debug channels */
+    int nextDebugChannel();
+    QVector<Register*>& debugChannels() {return m_debugChannels;} /**< @brief Returns a QVector containing the Registers that are active as debug channel.*/
 
 signals:
+    /**
+     * @brief Reset the time of the Cpu.
+     * @param cpu where the time should be reset.
+     */
     void resetTime(Cpu& cpu);
+
+    /**
+     * @brief Request the decimation from the cpu.
+     * @param cpu where the decimation should be readed from.
+     */
     void getDecimation(Cpu& cpu);
+
+    /**
+     * @brief Set the decimation of the cpu.
+     * @param cpu where the decimation must be set.
+     */
     void setDecimation(Cpu& cpu);
+
+    /**
+     * @brief Signal that the decimation is changed.
+     */
     void decimationChanged();
+
+    /**
+     * @brief Signal that a new register is found.
+     * @param newRegister Register that is found.
+     */
     void newRegisterFound(Register* newRegister);
 
 public slots:
-
     void setDecimation(int newDecimation);
     bool loadConfiguration();
     void receivedDecimation(int decimation);
 
 private:
-    uint8_t m_id = 0;
-    QString m_name;
-    QString m_serialNumber;
-    QString m_protocolVersion;
-    QString m_applicationVersion;
-    int m_activeDebugChannels = 0;
-    int m_maxDebugChannels = 16;
-    int m_decimation = 0;
-    int m_messageCounter= 0;
-    int m_invalidMessageCounter = 0;
-    QVector<Register*> m_debugChannels;
-    QVector<QPair<Register::VariableType,int>> m_variableTypeSizes;
-
+    uint8_t m_id = 0; /**< Id of the Cpu.*/
+    QString m_name; /**< Name of the Cpu.*/
+    QString m_serialNumber; /**< Serial number of the Cpu.*/
+    QString m_protocolVersion; /**< Protocol version of the Cpu.*/
+    QString m_applicationVersion; /**< Application version of the Cpu.*/
+    int m_activeDebugChannels = 0;  /**< Number of active debug channels.*/
+    const int m_maxDebugChannels = 16;  /**< Maximum number of debug channels.*/
+    int m_decimation = 0;  /**< Decimation of the Cpu.*/
+    int m_messageCounter= 0;  /**< Message counter of the Cpu.*/
+    int m_invalidMessageCounter = 0;  /**< Invalid message counter of the Cpu.*/
+    QVector<Register*> m_debugChannels;  /**< Vector of registers that are used as debug channels.*/
+    QVector<QPair<Register::VariableType,int>> m_variableTypeSizes;  /**< QVector of QPairs containing the sizes of different VariableTypes of the Cpu.*/
 };
 
 #endif // CPUNODE_H
