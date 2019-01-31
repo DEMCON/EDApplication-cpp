@@ -16,33 +16,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#include "Genericserialprofile.h"
+#include "../../Connectors/Serial/Serial.h"
 
-#include <QDialog>
-#include <QSettings>
-
-namespace Ui {
-class Settings;
-}
-
-class Settings : public QDialog
+/**
+ * @brief genericSerialProfile constructor
+ * @param parent of this QObject
+ */
+GenericSerialProfile::GenericSerialProfile(QObject *parent) :
+    BaseProfile(parent)
 {
-    Q_OBJECT
-
-public:
-    explicit Settings(QWidget *parent = nullptr);
-    ~Settings();
-
-private slots:
-    void on_buttonBox_accepted();
-
-private:
-    Ui::Settings *ui;
-    bool portValid(const QString& portString);
-    QSettings m_settings;
-    const QString m_settingsIPAddress = "IPAddress";
-    const QString m_settingsIPPort = "IPPort";
-};
-
-#endif // SETTINGS_H
+    addMedium(new Serial()); //Adds Serial to mediumList. will be deleted by BaseProfile deconstructor.
+}

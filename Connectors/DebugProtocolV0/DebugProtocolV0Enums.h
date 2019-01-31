@@ -27,7 +27,7 @@ public:
         Write
     };
 
-    enum ProtocolChar{
+    enum class ProtocolChar{
         STX = 0x55,
         ETX = 0xAA,
         ESC = 0x66,

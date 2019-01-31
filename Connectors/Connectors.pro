@@ -1,2 +1,3 @@
 TEMPLATE    = subdirs
-SUBDIRS	= TCP
+SUBDIRS	= TCP \
+    Serial

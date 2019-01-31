@@ -22,6 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "../BaseInterface/ApplicationLayerBase.h"
 #include "PresentationLayerV0.h"
 
+/**
+ * @brief The ApplicationLayerV0 class implements all the application layer functions
+ * that are used for Version 0 of the debug protocol.
+ */
 class ApplicationLayerV0 : public ApplicationLayerBase
 {
     Q_OBJECT

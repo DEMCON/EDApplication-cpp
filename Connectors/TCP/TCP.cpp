@@ -28,8 +28,6 @@ TCP::TCP(QObject* parent) :
     Medium(parent),
     m_tcpSocket(this)
 {
-    m_availableProtocols.append("DebugProtocol V0");
-
     QObject::connect(&m_tcpSocket,&QTcpSocket::connected, this, [&]()
     {
         if(m_presentationLayer != nullptr)
@@ -39,16 +37,6 @@ TCP::TCP(QObject* parent) :
         }
     });
     QObject::connect(&m_tcpSocket,&QTcpSocket::disconnected, this, [&](){setConnected(false);});
-    QObject::connect(&m_cpuListModel,&CpuListModel::newRegisterFound,this,[&](Register* newRegister)
-    {
-       if (m_applicationLayer != nullptr)
-       {
-           QObject::connect(newRegister,QOverload<Register&>::of(&Register::configDebugChannel),m_applicationLayer,&ApplicationLayerBase::configDebugChannel);
-           QObject::connect(newRegister,&Register::writeRegister,m_applicationLayer,&ApplicationLayerBase::writeRegister);
-           QObject::connect(newRegister,QOverload<Register&>::of(&Register::queryRegister),m_applicationLayer,&ApplicationLayerBase::queryRegister);
-       }
-       m_registerListModel.append(newRegister);
-    });
 
     QObject::connect(&m_tcpSocket,QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error), this, [&]()
     {
@@ -62,19 +50,9 @@ TCP::~TCP()
     disconnect();
 }
 
-void TCP::createDebugProtocolV0Layers()
-{
-    destroyProtocolLayers();
-    m_transportLayer = new TransportLayerV0(this);
-    m_presentationLayer = new PresentationLayerV0(m_cpuListModel,m_registerListModel,this);
-    m_applicationLayer = new ApplicationLayerV0(static_cast<PresentationLayerV0&>(*m_presentationLayer),this);
-}
-
 void TCP::connectLayers()
 {
-    QObject::connect(m_transportLayer,&TransportLayerBase::receivedDebugProtocolCommand,
-                     m_presentationLayer,&PresentationLayerBase::receivedDebugProtocolCommand);
-    QObject::connect(&m_tcpSocket,&QTcpSocket::readyRead, this, [&]()
+   QObject::connect(&m_tcpSocket,&QTcpSocket::readyRead, this, [&]()
     {
         m_transportLayer->receivedData(m_tcpSocket.readAll());
     });
@@ -82,43 +60,17 @@ void TCP::connectLayers()
     {
         m_tcpSocket.write(message);
     });
-    QObject::connect(m_presentationLayer,&PresentationLayerBase::newDebugProtocolCommand,
-                     m_transportLayer,&TransportLayerBase::sendDebugProtocolCommand);
-    QObject::connect(m_presentationLayer,&PresentationLayerBase::newCpuFound,this, [&](Cpu* newCpu)
-    {
-        if (!m_cpuListModel.contains(newCpu->id()))
-        {
-            QObject::connect(newCpu,&Cpu::resetTime,m_applicationLayer,&ApplicationLayerBase::resetTime);
-            QObject::connect(newCpu,QOverload<Cpu&>::of(&Cpu::setDecimation),m_applicationLayer,&ApplicationLayerBase::setDecimation);
-            m_cpuListModel.append(newCpu);
-        }
-    });
 }
 
 void TCP::destroyProtocolLayers()
 {
-    if (m_applicationLayer != nullptr)
-    {
-        m_applicationLayer->deleteLater();
-        m_applicationLayer = nullptr;
-    }
-    if (m_presentationLayer != nullptr)
-    {
-        m_presentationLayer->deleteLater();
-        m_presentationLayer = nullptr;
-    }
-    if (m_transportLayer != nullptr)
-    {
-        QObject::disconnect(&m_tcpSocket, &QTcpSocket::readyRead, this, nullptr); //Disconnect tcpSocket lambda
-        m_transportLayer->deleteLater();
-        m_transportLayer = nullptr;
-    }
+      QObject::disconnect(&m_tcpSocket, &QTcpSocket::readyRead, this, nullptr); //Disconnect tcpSocket lambda
+      Medium::destroyProtocolLayers();
 }
 
 
 void TCP::connect()
 {
-
     m_settings.beginGroup("TCP");
 
     QString hostname = m_settings.value("IPAddress","").toString();
@@ -130,15 +82,11 @@ void TCP::connect()
         !portConverted ||
         port == 0)
     {
-        m_tcpSettingsDialog.show();
+       showSettings();
     }
     else
     {
-        switch(m_selectedProtocolVersion)
-        {
-            case 0:  createDebugProtocolV0Layers(); break;
-        }
-
+        createDebugProtocolV0Layers();
         connectLayers();
         m_tcpSocket.connectToHost(hostname,port);
     }
@@ -148,9 +96,8 @@ void TCP::disconnect()
 {
     m_tcpSocket.disconnectFromHost();
     m_tcpSocket.reset();
-    m_cpuListModel.clear();
-    m_registerListModel.clear();
     destroyProtocolLayers();
+    Medium::clear();
 }
 
 void TCP::showSettings()
@@ -162,12 +109,4 @@ bool TCP::setHostAddress(const QString &ipAddress, int ipPort)
 {
     m_hostPort = ipPort;
     return m_hostAddress.setAddress(ipAddress);
-}
-
-void TCP::setProtocolVersion(int availableProtocolVersionIndex)
-{
-    if(availableProtocolVersionIndex < m_availableProtocols.size())
-    {
-        m_selectedProtocolVersion = availableProtocolVersionIndex;
-    }
 }

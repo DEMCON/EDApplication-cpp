@@ -20,14 +20,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CPUNODELISTMODEL_H
 
 #include <QAbstractListModel>
-#include "Cpu.h"
+class Cpu;
+class Register;
 
+/**
+ * @brief The CpuListModel class holds all the cpu`s that are found.
+ */
 class CpuListModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
     explicit CpuListModel(QObject *parent = nullptr);
-    virtual ~CpuListModel();
+     ~CpuListModel() override;
 
     //Basic funtionality:
     int rowCount(const QModelIndex &parent) const override;
@@ -42,10 +46,15 @@ public:
     Cpu* getCpuNodeById(uint8_t cpuNodeID);
 
 signals:
+
+    /**
+     * @brief Signal that is emitted when a new register is found.
+     * @param newRegister the register that is found.
+     */
     void newRegisterFound(Register* newRegister);
 
 private:
-    QVector<Cpu*> m_cpuNodes;
+    QVector<Cpu*> m_cpuNodes; /**< QVector containing all the cpu`s. */
 };
 
 #endif // CPUNODELISTMODEL_H

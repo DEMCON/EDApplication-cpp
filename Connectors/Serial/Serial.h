@@ -16,33 +16,39 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#ifndef SERIAL_H
+#define SERIAL_H
 
-#include <QDialog>
-#include <QSettings>
+#include <QSerialPort>
+#include "../../EmbeddedDebugger/Medium/Medium.h"
+#include "Settingsdialog.h"
 
-namespace Ui {
-class Settings;
-}
+class ApplicationLayerBase;
+class PresentationLayerBase;
+class TransportLayerBase;
 
-class Settings : public QDialog
+/**
+ * @brief The Serial class will send all messages over a serial port.
+ */
+class Serial : public Medium
 {
     Q_OBJECT
-
 public:
-    explicit Settings(QWidget *parent = nullptr);
-    ~Settings();
+    Serial(QObject* parent = nullptr);
+    virtual ~Serial();
 
-private slots:
-    void on_buttonBox_accepted();
+public slots:
+    void connect() override;
+    void disconnect() override;
+    void showSettings() override;
 
 private:
-    Ui::Settings *ui;
-    bool portValid(const QString& portString);
-    QSettings m_settings;
-    const QString m_settingsIPAddress = "IPAddress";
-    const QString m_settingsIPPort = "IPPort";
+    void connectLayers();
+    void destroyProtocolLayers();
+
+private:
+    QSerialPort m_serialPort; /**< QSerialPort instance */
+    SettingsDialog m_settingsDialog; /**< Dialog for serial port settings */
 };
 
-#endif // SETTINGS_H
+#endif // SERIAL_H

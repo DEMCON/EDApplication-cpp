@@ -21,20 +21,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QVariant>
 #include <QObject>
-#include <QPair>
 class Cpu;
 
+/**
+ * @brief The Register class hold all the information from a register.
+ */
 class Register : public QObject
 {
     Q_OBJECT
 public:
+    /**
+     * @brief Used to check if a register is a read or write register.
+     */
     enum class ReadWrite{
         Unknown,
         Read,
-        Write,
-        ReadWrite,
+        Write
     };
 
+    /**
+     * @brief Channel mode the register has in a debug channel.
+     */
     enum class ChannelMode{
         Off = 0,
         OnChange = 0x1,
@@ -42,6 +49,9 @@ public:
         Once = 0x03
     };
 
+    /**
+     * @brief Source of the register
+     */
     enum class Source{
         HandWrittenOffset = 0,
         HandWrittenIndex = 0x10,
@@ -51,6 +61,9 @@ public:
         Unknown,
     };
 
+    /**
+     * @brief Possible variable types of the register
+     */
     enum class VariableType
     {
         MemoryAlignment = 0x0, // memory alignment (given in size_n; typically 1 or 4; example: memory alignment = 4  addresses are a multiple of 4)
@@ -68,35 +81,33 @@ public:
 
     };
 
-    Register(uint id, QString name, Register::ReadWrite readWrite, Register::VariableType variableType, Register::Source source, uint derefDepth, uint offset, Cpu& cpu);
+    Register(uint id,const QString& name, Register::ReadWrite readWrite, Register::VariableType variableType, Register::Source source, uint derefDepth, uint offset, Cpu& cpu);
 
-    uint id() const {return m_id;}
-    QString name() const {return m_name;}
-    Register::ReadWrite readWrite() const {return m_readWrite;}
-    Register::ChannelMode channelMode() const {return m_channelMode;}
-    Register::Source source() const {return m_source;}
-    Register::VariableType variableType() const {return m_variableType;}
+    uint id() const {return m_id;} /**< @brief Returns the id of the Register.*/
+    QString name() const {return m_name;} /**< @brief Returns the name of the Register.*/
+    Register::ReadWrite readWrite() const {return m_readWrite;} /**< @brief Returns the ReadWrite status of the Register.*/
+    Register::ChannelMode channelMode() const {return m_channelMode;} /**< @brief Returns the channelmode of the Register.*/
+    Register::Source source() const {return m_source;} /**< @brief Returns the source of the Register.*/
+    Register::VariableType variableType() const {return m_variableType;} /**< @brief Returns the VariableType of the Register.*/
     int getVariableTypeSize() const;
-    uint derefDepth() const {return m_derefDepth;}
-    uint32_t offset() const {return m_offset;}
-    uint timeStampUnits() const {return m_timeStampUnits;}
-    QVariant value() const {return m_registerValue;}
-    uint timeStamp() const {return m_lastRegisterValueTimestamp;}
-    Cpu& cpu() const {return m_cpu;}
+    uint derefDepth() const {return m_derefDepth;} /**< @brief Returns the derefDepth of the Register.*/
+    uint32_t offset() const {return m_offset;} /**< @brief Returns the offset of the Register.*/
+    uint timeStampUnits() const {return m_timeStampUnits;} /**< @brief Returns the timestampUnits of the Register.*/
+    QVariant value() const {return m_registerValue;} /**< @brief Returns the value of the Register.*/
+    uint timeStamp() const {return m_lastRegisterValueTimestamp;} /**< @brief Returns the timestamp of the Register.*/
+    Cpu& cpu() const {return m_cpu;} /**< @brief Returns the cpu of the Register.*/
     void configDebugChannel(ChannelMode newChannelMode);
     void setValue(const QVariant &value);
-    void queryRegister();
+    void queryRegister() {emit queryRegister(*this);} /**< @brief Query this Register */
 
     static Register::ReadWrite ReadWritefromString(const QString& enumString);
     static Register::Source SourcefromString(const QString&  enumString);
     static Register::VariableType variableTypeFromString(const QString&  enumString);
     static QString variableTypeToString(const Register::VariableType&  variableType);
 
-
-
 public slots:
-    void receivedNewRegisterValue(QVariant newRegisterValue);
-    void receivedNewRegisterValue(QVariant newRegisterValue, uint timeStamp);
+    void receivedNewRegisterValue(const QVariant& newRegisterValue);
+    void receivedNewRegisterValue(const QVariant& newRegisterValue, uint timeStamp);
 
 signals:
     void configDebugChannel(Register& Register);
@@ -105,18 +116,18 @@ signals:
     void registerDataChanged(Register& Register);
 
 private:
-    uint m_id;
-    QString m_name;
-    Register::ReadWrite m_readWrite;
-    Register::VariableType m_variableType;
-    Register::ChannelMode m_channelMode = Register::ChannelMode::Off;
-    Register::Source m_source;
-    uint m_derefDepth = 0;
-    uint32_t m_offset = 0;
-    uint m_timeStampUnits = 0;
-    QVariant m_registerValue;
-    uint m_lastRegisterValueTimestamp = 0;
-    Cpu& m_cpu;
+    uint m_id;  /**< @brief The id of the Register.*/
+    QString m_name;  /**< @brief The name of the Register.*/
+    Register::ReadWrite m_readWrite;  /**< @brief current ReadWrite of the Register.*/
+    Register::VariableType m_variableType;  /**< @brief variableType of the Register.*/
+    Register::ChannelMode m_channelMode = Register::ChannelMode::Off;  /**< @brief The ChannelMode of the Register.*/
+    Register::Source m_source;  /**< @brief The soure of the Register.*/
+    uint m_derefDepth = 0; /**< @brief The derefDepth of the Register.*/
+    uint32_t m_offset = 0;  /**< @brief The offset of the Register.*/
+    uint m_timeStampUnits = 0;  /**< @brief The timeStampUnits of the Register.*/
+    QVariant m_registerValue;  /**< @brief The value of the Register.*/
+    uint m_lastRegisterValueTimestamp = 0;  /**< @brief The last timestamp of the received value of the Register.*/
+    Cpu& m_cpu; /**< @brief Reference to the Cpu of this Register.*/
 };
 
 #endif // REGISTER_H

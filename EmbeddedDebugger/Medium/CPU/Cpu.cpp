@@ -31,20 +31,28 @@ Cpu::Cpu(uint8_t id,const QString& name,const QString& serialNumber,const QStrin
     m_serialNumber(serialNumber),
     m_protocolVersion(protocolVersion),
     m_applicationVersion(applicationVersion)
-{
-    qDebug() << "New cpu: " << m_id;
-}
+{}
 
 Cpu::~Cpu()
 {
 
 }
 
+/**
+ * @brief Set the variable type size
+ * @param variableType where the size must be added to.
+ * @param size size of the variableType
+ */
 void Cpu::setVariableTypeSize(const Register::VariableType &variableType, int size)
 {
     m_variableTypeSizes.append(qMakePair(variableType,size));
 }
 
+/**
+ * @brief Get the size of a VariableType
+ * @param variableType Type of the size you want to know.
+ * @return Size of the variableType
+ */
 int Cpu::getVariableTypeSize(const Register::VariableType& variableType)
 {
     int returnValue = 0;
@@ -53,22 +61,25 @@ int Cpu::getVariableTypeSize(const Register::VariableType& variableType)
         if(variable.first == variableType)
         {
             returnValue = variable.second;
+            break;
         }
     }
     return returnValue;
 }
 
-void Cpu::increaseMessageCounter()
-{
-    m_messageCounter++;
-}
-
+/**
+ * @brief Increase the invalid message counter
+ */
 void Cpu::increaseInvalidMessageCounter()
 {
     increaseMessageCounter();
     m_invalidMessageCounter++;
 }
 
+/**
+ * @brief Calculate the next available debug Channel
+ * @return next available debug channel. If no debug channel is available, returns -1
+ */
 int Cpu::nextDebugChannel()
 {
     if(m_debugChannels.size() < m_maxDebugChannels)
@@ -78,39 +89,51 @@ int Cpu::nextDebugChannel()
     return -1;
 }
 
-
+/**
+ * @brief Set the decimation of this Cpu
+ * @param newDecimation the decimation to be set to the Cpu.
+ */
 void Cpu::setDecimation(int newDecimation)
 {
     m_decimation = newDecimation;
     emit setDecimation(*this);
 }
 
+/**
+ * @brief Load register configuration from json file.
+ * @return true if loaded, false if not loaded.
+ */
 bool Cpu::loadConfiguration()
 {
+    //Load file from location.
+    //TODO: Add UI part to load configuration from other location.
     QString fileLocation(QDir::currentPath() + "/Registers/" + m_name + "/" + m_applicationVersion+ ".json");
     QFile loadFile(fileLocation);
+    //Check if file could be openend.
     if (!loadFile.open(QIODevice::ReadOnly))
     {
         qWarning() << "Could not open register List at location: " << fileLocation.toStdString().c_str();
         return false;
     }
 
+    //Read registerData.
     QByteArray registerData = loadFile.readAll();
 
     QJsonDocument loadDoc(QJsonDocument::fromJson(registerData));
-
     QJsonObject registerObject = loadDoc.object();
+    //Transpose Registers to JsonArray.
     QJsonArray registerAray = registerObject["Registers"].toArray();
     for (auto RegisterRef : registerAray)
     {
         QJsonObject Reg = RegisterRef.toObject();
-        Register* newRegister = new Register(Reg["id"].toInt(),
+        //Create a new Register from the Reg object.
+        Register* newRegister = new Register(static_cast<uint>(Reg["id"].toInt()),
                 Reg["name"].toString(),
                 Register::ReadWritefromString(Reg["ReadWrite"].toString()),
                 Register::variableTypeFromString(Reg["Type"].toString()),
                 Register::SourcefromString(Reg["Source"].toString()),
-                Reg["DerefDepth"].toInt(),
-                Reg["Offset"].toInt(),
+                static_cast<uint>(Reg["DerefDepth"].toInt()),
+                static_cast<uint>(Reg["Offset"].toInt()),
                 *this);
 
         emit newRegisterFound(newRegister);
@@ -118,6 +141,10 @@ bool Cpu::loadConfiguration()
     return true;
 }
 
+/**
+ * @brief Received decimation
+ * @param decimation that is received.
+ */
 void Cpu::receivedDecimation(int decimation)
 {
     m_decimation = decimation;

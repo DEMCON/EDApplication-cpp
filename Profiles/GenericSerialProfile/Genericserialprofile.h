@@ -16,33 +16,22 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#ifndef GENERICSERIALPROFILE_H
+#define GENERICSERIALPROFILE_H
 
-#include <QDialog>
-#include <QSettings>
+#include <QObject>
+#include "../BaseProfile.h"
 
-namespace Ui {
-class Settings;
-}
-
-class Settings : public QDialog
+/**
+ * @brief creates a generic Serial Profile
+ */
+class GenericSerialProfile : public BaseProfile
 {
     Q_OBJECT
-
+    Q_PLUGIN_METADATA(IID "DEMCON.EmbeddedDebugger.BaseProfile" FILE "GenericSerialProfile.json")
+    Q_INTERFACES(BaseProfile)
 public:
-    explicit Settings(QWidget *parent = nullptr);
-    ~Settings();
-
-private slots:
-    void on_buttonBox_accepted();
-
-private:
-    Ui::Settings *ui;
-    bool portValid(const QString& portString);
-    QSettings m_settings;
-    const QString m_settingsIPAddress = "IPAddress";
-    const QString m_settingsIPPort = "IPPort";
+    explicit GenericSerialProfile(QObject *parent = nullptr);
 };
 
-#endif // SETTINGS_H
+#endif // GENERICSERIALPROFILE_H

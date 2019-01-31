@@ -81,13 +81,9 @@ void Settings::on_buttonBox_accepted()
     close();
 }
 
-bool Settings::portValid(QString portString)
+bool Settings::portValid(const QString& portString)
 {
     bool conversionOK = false;
     int port = portString.toInt(&conversionOK);
-    if (conversionOK && port > 0 && port < std::numeric_limits<uint16_t>::max())
-    {
-        return true;
-    }
-    return false;
+    return conversionOK && port > 0 && port < std::numeric_limits<uint16_t>::max();
 }

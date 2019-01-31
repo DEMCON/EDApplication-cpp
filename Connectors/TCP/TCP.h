@@ -25,9 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QStringList>
 #include "Settings.h"
 
-class ApplicationLayerBase;
-class PresentationLayerBase;
-class TransportLayerBase;
+
 
 class TCP : public Medium
 {
@@ -46,24 +44,18 @@ public slots:
     void disconnect() override;
     void showSettings() override;
     bool setHostAddress(const QString& ipAddress, int ipPort);
-    void setProtocolVersion(int availableProtocolVersionIndex);
 
 private:
-    void createDebugProtocolV0Layers();
     void connectLayers();
     void destroyProtocolLayers();
 
 private:
-    ApplicationLayerBase* m_applicationLayer = nullptr;
-    PresentationLayerBase* m_presentationLayer = nullptr;
-    TransportLayerBase* m_transportLayer = nullptr;
     QTcpSocket m_tcpSocket;
     QStringList m_availableProtocols;
     QHostAddress m_hostAddress;
     Settings m_tcpSettingsDialog;
     QSettings m_settings;
     int m_hostPort = 0;
-    int m_selectedProtocolVersion = 0;
 };
 
 #endif // TCP_H

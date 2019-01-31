@@ -24,12 +24,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "../Profiles/kconcatenaterowsproxymodel.h"
 #include "Register/RegisterListModel.h"
 
+class ApplicationLayerBase;
+class PresentationLayerBase;
+class TransportLayerBase;
+
 class Medium : public QObject
 {
     Q_OBJECT
 public:
-    explicit Medium(QObject *parent = nullptr) :
-        QObject(parent){}
+    explicit Medium(QObject *parent = nullptr);
 
     virtual void connect() = 0;
     virtual void disconnect() = 0;
@@ -38,24 +41,28 @@ public:
     RegisterListModel& registerListModel() {return m_registerListModel;}
 
     bool isConnected() const {return m_connected;}
-    void setConnected(bool isConnected)
-    {
-        if(m_connected != isConnected)
-        {
-            m_connected = isConnected;
-            emit connectedChanged();
-        }
-    }
+    void setConnected(bool isConnected);
 
 signals:
     void errorOccured(QString error);
     void connectedChanged();
     void registerListModelChanged();
 
+
 protected:
+    void createDebugProtocolV0Layers();
+    void destroyProtocolLayers();
+    void clear();
+
+
+protected:
+    ApplicationLayerBase* m_applicationLayer = nullptr;
+    PresentationLayerBase* m_presentationLayer = nullptr;
+    TransportLayerBase* m_transportLayer = nullptr;
     CpuListModel m_cpuListModel;
     RegisterListModel m_registerListModel;
     bool m_connected = false;
+
 };
 
 #endif // MEDIUM_H

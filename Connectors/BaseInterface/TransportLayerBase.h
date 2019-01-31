@@ -20,7 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define TRANSPORTLAYERBASE_H
 
 #include <QObject>
-
+/**
+ * @brief The TransportLayerBase class is the base class for the transport layer.
+ * Each protocol version must be inherited from this class.
+ */
 class TransportLayerBase : public QObject
 {
     Q_OBJECT
@@ -29,12 +32,35 @@ public:
         QObject(parent){}
 
 signals:
-    void receivedDebugProtocolCommand(uint8_t uCId, QVector<uint8_t> messageVector);
+
+    /**
+     * @brief Signal that is emitted when a new debug protocol message is received.
+     * @param uCId cpuId where the message came from.
+     * @param messageVector Vector containing the protocol message.
+     */
+    void receivedDebugProtocolMessage(uint8_t uCId, QVector<uint8_t> messageVector);
+
+    /**
+     * @brief Signal that is emitted when a new debug protocol command needs to be written.
+     * @param message containing a debug protocol command.
+     */
     void write(const QByteArray& message);
 
 public slots:
+
+    /**
+     * @brief creates a valid debug protocol message from the cpuId and messageVector
+     * @param uCId cpu where the message needs to be send to
+     * @param messageVector vector containing the message that needs to be send.
+     */
     virtual void sendDebugProtocolCommand(uint8_t uCId, QVector<uint8_t> messageVector) = 0;
-    virtual void receivedData(QByteArray message) = 0;
+
+    /**
+     * @brief reads the incoming data for protocol messages.
+     * When a protocol message is received, the receivedDebugProtocolCommand signal is emitted.
+     * @param message containing the received data.
+     */
+    virtual void receivedData(const QByteArray message) = 0;
 
 };
 

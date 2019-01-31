@@ -1,2 +1,3 @@
 TEMPLATE    = subdirs
-SUBDIRS	= GenericTcpProfile
+SUBDIRS	= GenericTcpProfile \
+    GenericSerialProfile
